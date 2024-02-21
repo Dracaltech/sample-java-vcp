@@ -13,3 +13,8 @@ repositories {
 dependencies {
     implementation 'io.github.java-native:jssc:2.9.6'
 }
+
+task execute(type: JavaExec) {
+    main = 'Main'
+    classpath = sourceSets.main.runtimeClasspath
+}

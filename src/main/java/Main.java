@@ -1,3 +1,7 @@
+package src.main.java;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -22,11 +26,11 @@ public class Main {
     // write instructions
     try {
       serialPort.writeBytes("INFO\r\n".getBytes());
-      Thread.sleep(100);
+      Thread.sleep(1000);
       serialPort.writeBytes("POLL 1000\r\n".getBytes());
-      Thread.sleep(100);
+      Thread.sleep(1000);
       serialPort.writeBytes("FRAC 2\r\n".getBytes());
-      Thread.sleep(100);
+      Thread.sleep(1000);
     } catch (SerialPortException | InterruptedException ex) {
       System.out.println("Error writing to serial port: " + ex);
     }
@@ -89,7 +93,8 @@ public class Main {
                 }
 
                 // print result
-                System.out.println(new java.util.Date().toString() + " " + device);
+                String now = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss").format(LocalDateTime.now());
+                System.out.println(now + " " + device);
                 for (int i = 0; i < units.length; i++) {
                   System.out.println(String.format("%-" + (padlen + 2) + "s %s %s", sensors[i], values[i], units[i]));
                 }
