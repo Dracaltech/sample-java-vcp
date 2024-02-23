@@ -15,6 +15,6 @@ dependencies {
 }
 
 task execute(type: JavaExec) {
-    main = 'Main'
+    main = 'src.main.java.Main'
     classpath = sourceSets.main.runtimeClasspath
 }
