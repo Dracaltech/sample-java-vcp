@@ -1,6 +1,7 @@
 package src.main.java;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
@@ -13,7 +14,7 @@ public class Main {
   static int interval = 1000;
   static int baudRate = 9600;
 
-  static String info_line;
+  static String[] info_line;
   static int padlen;
 
   public static void main(String[] args) {
@@ -48,11 +49,13 @@ public class Main {
         public void serialEvent(SerialPortEvent event) {
           if (event.isRXCHAR()) {
             try {
+              // read until the end of line
               byte[] buffer = serialPort.readBytes();
               for (byte b: buffer) {
                 if ( (b == '\r' || b == '\n') && msg.length() > 0) {
                   String data = new String(msg.toString());
 
+                  // process the line
                   processData(data);
                   msg.setLength(0);
                 }
@@ -72,18 +75,16 @@ public class Main {
   }
 
   private static void processData(String data) {
-    //String data = new String(buffer);
     String[] split = data.replace(", ", ",").split("\\*")[0].split(",");
 
     // extract info line
     if (split[0].contains("I")) {
       // parse field titles
       if (split[1].equals("Product ID")) {
-        info_line = data;
-        String[] infoSplit = info_line.split(",");
-        String[] values = new String[infoSplit.length - 4];
-        for (int i = 4; i < infoSplit.length; i++) {
-          values[i - 4] = infoSplit[i];
+        info_line = split;
+        String[] values = new String[split.length - 4];
+        for (int i = 4; i < split.length; i++) {
+          values[i - 4] = split[i];
         }
 
         padlen = 0;
@@ -92,7 +93,7 @@ public class Main {
             padlen = s.length();
           }
         }
-        System.out.println(info_line);
+        System.out.println(Arrays.toString(info_line));
       } else {
         System.out.println(split[3]);
       }
@@ -103,15 +104,17 @@ public class Main {
       return;
     }
 
-    // extract readout values
+    // parse readout values
     String device = split[1] + " " + split[2];
-    String[] sensors = info_line.split(",");
-    double[] values = new double[sensors.length / 2];
-    String[] units = new String[sensors.length / 2];
+    String[] sensors = new String[(info_line.length - 4) / 2];
+    double[] values = new double[sensors.length];
+    String[] units = new String[sensors.length];
 
-    for (int i = 4; i < sensors.length - 1; i += 2) {
-      values[i / 2] = Double.parseDouble(split[i]);
-      units[i / 2] = split[i + 1].trim();
+    String[] info = Arrays.copyOfRange(info_line, 4, info_line.length);
+    for (int i = 0; i < info.length - 1; i += 2) {
+      sensors[i/2] = info[i].trim();
+      values[i/2] = Double.parseDouble(split[i + 4]);
+      units[i/2] = split[i + 5].trim();
     }
 
     // print result
