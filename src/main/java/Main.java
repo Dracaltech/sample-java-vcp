@@ -2,6 +2,7 @@ package src.main.java;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.List;
 
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
@@ -14,6 +15,7 @@ public class Main {
   static int interval = 1000;
   static int baudRate = 9600;
 
+  // working globals
   static String[] info_line;
   static int padlen;
 
@@ -42,25 +44,23 @@ public class Main {
     // read event
     try {
       serialPort.addEventListener(new SerialPortEventListener() {
-        StringBuilder msg = new StringBuilder();
-
+        StringBuilder line = new StringBuilder();
 
         @Override
         public void serialEvent(SerialPortEvent event) {
           if (event.isRXCHAR()) {
             try {
-              // read until the end of line
+              // accumulate reads until the end of line
               byte[] buffer = serialPort.readBytes();
-              for (byte b: buffer) {
-                if ( (b == '\r' || b == '\n') && msg.length() > 0) {
-                  String data = new String(msg.toString());
+              for (byte currentByte: buffer) {
+                if ( (currentByte == '\r' || currentByte == '\n') && line.length() > 0) {
+                  // send for processing
+                  processData(line.toString());
 
-                  // process the line
-                  processData(data);
-                  msg.setLength(0);
+                  line.setLength(0);
                 }
                 else {
-                  msg.append((char)b);
+                  line.append((char) currentByte);
                 }
               }
             } catch (SerialPortException ex) {
@@ -74,6 +74,7 @@ public class Main {
     }
   }
 
+  // parse a data line and display results
   private static void processData(String data) {
     String[] split = data.replace(", ", ",").split("\\*")[0].split(",");
 
@@ -82,17 +83,10 @@ public class Main {
       // parse field titles
       if (split[1].equals("Product ID")) {
         info_line = split;
-        String[] values = new String[split.length - 4];
-        for (int i = 4; i < split.length; i++) {
-          values[i - 4] = split[i];
-        }
 
-        padlen = 0;
-        for (String s : values) {
-          if (s.length() > padlen) {
-            padlen = s.length();
-          }
-        }
+        List<String> values = Arrays.asList(Arrays.copyOfRange(split, 4, split.length));
+        padlen = values.stream().map(String::length).max(Integer::compareTo).get();
+
         System.out.println(Arrays.toString(info_line));
       } else {
         System.out.println(split[3]);
