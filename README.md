@@ -7,7 +7,7 @@ Running this repository requires you to have installed:
 - Java (version >= 11)
 - Gradle (version >= 6.7)
 
-You can test your setup by executing a build:
+You can test your setup by running a build:
 ```
 gradle build
 ```
@@ -22,6 +22,7 @@ gradle execute
 ```
 
 ## Sample output
+<img src="https://github.com/Dracaltech/sample-java-vcp/assets/1357711/882d0faa-25e8-447f-a60c-47ef4a609fe3" width=400 />
 
 
 ```
